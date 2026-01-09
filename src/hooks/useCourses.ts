@@ -1,0 +1,257 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/context/AuthContext';
+import { toast } from 'sonner';
+
+export interface Course {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  start_date: string | null;
+  created_by: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Lesson {
+  id: string;
+  course_id: string;
+  lesson_name: string;
+  lesson_file: string | null;
+  categories: Record<string, Array<{ English: string; Vietnamese: string }>>;
+  order_index: number;
+  deadline_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Enrollment {
+  id: string;
+  user_id: string;
+  course_id: string;
+  enrolled_at: string;
+  status: string;
+  completed_at: string | null;
+}
+
+export const useCourses = () => {
+  return useQuery({
+    queryKey: ['courses'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('courses')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data as Course[];
+    }
+  });
+};
+
+export const useCourseLessons = (courseId: string | null) => {
+  return useQuery({
+    queryKey: ['lessons', courseId],
+    queryFn: async () => {
+      if (!courseId) return [];
+      
+      const { data, error } = await supabase
+        .from('lessons')
+        .select('*')
+        .eq('course_id', courseId)
+        .order('order_index', { ascending: true });
+
+      if (error) throw error;
+      return data as Lesson[];
+    },
+    enabled: !!courseId
+  });
+};
+
+export const useAllLessons = () => {
+  return useQuery({
+    queryKey: ['all-lessons'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('lessons')
+        .select('*, courses(code, name)')
+        .order('order_index', { ascending: true });
+
+      if (error) throw error;
+      return data;
+    }
+  });
+};
+
+export const useEnrollments = () => {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ['enrollments', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from('enrollments')
+        .select('*, courses(*)')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id
+  });
+};
+
+export const useCreateCourse = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (course: Omit<Course, 'id' | 'created_at' | 'updated_at' | 'created_by'>) => {
+      const { data, error } = await supabase
+        .from('courses')
+        .insert({
+          ...course,
+          created_by: user?.id
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+      toast.success('Course created successfully');
+    },
+    onError: (error) => {
+      toast.error(`Failed to create course: ${error.message}`);
+    }
+  });
+};
+
+export const useDeleteCourse = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (courseId: string) => {
+      const { error } = await supabase
+        .from('courses')
+        .delete()
+        .eq('id', courseId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+      toast.success('Course deleted successfully');
+    },
+    onError: (error) => {
+      toast.error(`Failed to delete course: ${error.message}`);
+    }
+  });
+};
+
+export const useCreateLesson = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (lesson: Omit<Lesson, 'id' | 'created_at' | 'updated_at'>) => {
+      const { data, error } = await supabase
+        .from('lessons')
+        .insert(lesson)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['lessons'] });
+      queryClient.invalidateQueries({ queryKey: ['all-lessons'] });
+      toast.success('Lesson created successfully');
+    },
+    onError: (error) => {
+      toast.error(`Failed to create lesson: ${error.message}`);
+    }
+  });
+};
+
+export const useDeleteLesson = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (lessonId: string) => {
+      const { error } = await supabase
+        .from('lessons')
+        .delete()
+        .eq('id', lessonId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['lessons'] });
+      queryClient.invalidateQueries({ queryKey: ['all-lessons'] });
+      toast.success('Lesson deleted successfully');
+    },
+    onError: (error) => {
+      toast.error(`Failed to delete lesson: ${error.message}`);
+    }
+  });
+};
+
+export const useUpdateLessonDeadline = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ lessonId, deadline }: { lessonId: string; deadline: string | null }) => {
+      const { error } = await supabase
+        .from('lessons')
+        .update({ deadline_date: deadline })
+        .eq('id', lessonId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['lessons'] });
+      queryClient.invalidateQueries({ queryKey: ['all-lessons'] });
+      toast.success('Deadline updated successfully');
+    },
+    onError: (error) => {
+      toast.error(`Failed to update deadline: ${error.message}`);
+    }
+  });
+};
+
+export const useEnrollInCourse = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (courseId: string) => {
+      if (!user?.id) throw new Error('Not authenticated');
+      
+      const { data, error } = await supabase
+        .from('enrollments')
+        .insert({
+          user_id: user.id,
+          course_id: courseId
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['enrollments'] });
+      toast.success('Enrolled successfully!');
+    },
+    onError: (error) => {
+      toast.error(`Failed to enroll: ${error.message}`);
+    }
+  });
+};
