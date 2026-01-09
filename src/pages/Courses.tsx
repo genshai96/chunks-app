@@ -1,38 +1,21 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
-import { 
-  BookOpen, 
-  Target, 
-  Flame, 
-  TrendingUp, 
-  Clock,
-  Mic,
-  Loader2,
-  History,
-  ArrowRight
-} from "lucide-react";
+import { BookOpen, Loader2 } from "lucide-react";
 import { Sidebar } from "@/components/layout/Sidebar";
-import { StatsCard } from "@/components/dashboard/StatsCard";
 import { CourseCard } from "@/components/dashboard/CourseCard";
 import { LessonItem } from "@/components/dashboard/LessonItem";
 import { CategoryTabs } from "@/components/dashboard/CategoryTabs";
 import { PracticeItemCard } from "@/components/dashboard/PracticeItemCard";
 import { PracticeModal } from "@/components/practice/PracticeModal";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/context/AuthContext";
-import { useProfile } from "@/hooks/useUserData";
 import { useCourses, useEnrollments, useCourseLessons, useEnrollInCourse, Lesson } from "@/hooks/useCourses";
-import { useUserStats, useUserProgress } from "@/hooks/usePractice";
+import { useUserProgress } from "@/hooks/usePractice";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
-import { formatDistanceToNow } from "date-fns";
+import { Mic } from "lucide-react";
 
-const Index = () => {
-  const { user } = useAuth();
-  const { data: profile } = useProfile();
+const Courses = () => {
   const { data: courses, isLoading: coursesLoading } = useCourses();
   const { data: enrollments, isLoading: enrollmentsLoading } = useEnrollments();
-  const { data: userStats } = useUserStats();
   const enrollInCourse = useEnrollInCourse();
   const tts = useTextToSpeech();
   
@@ -41,21 +24,15 @@ const Index = () => {
   const [activeCategory, setActiveCategory] = useState("Vocab");
   const [isPracticeOpen, setIsPracticeOpen] = useState(false);
 
-  // Get user progress for selected lesson
   const { data: lessonProgress } = useUserProgress(selectedLesson?.id);
 
-  // Get enrolled course IDs
   const enrolledCourseIds = enrollments?.map(e => e.course_id) || [];
-  
-  // Find first enrolled course for lessons display
   const firstEnrolledCourse = courses?.find(c => enrolledCourseIds.includes(c.id));
   
-  // Fetch lessons for the selected/first enrolled course
   const { data: lessons, isLoading: lessonsLoading } = useCourseLessons(
     selectedCourseId || firstEnrolledCourse?.id || null
   );
 
-  // Get categories from selected lesson
   const lessonCategories = selectedLesson?.categories 
     ? Object.entries(selectedLesson.categories).map(([name, items]) => ({
         id: name.toLowerCase(),
@@ -64,7 +41,6 @@ const Index = () => {
       }))
     : [];
 
-  // Get practice items for active category with mastery status
   const practiceItems = selectedLesson?.categories?.[activeCategory] || [];
   const practiceItemsWithMastery = practiceItems.map((item: any, index: number) => {
     const progress = lessonProgress?.find(
@@ -94,60 +70,25 @@ const Index = () => {
       
       <main className="ml-64 p-8">
         <div className="max-w-6xl mx-auto">
-          {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-8"
           >
             <h1 className="text-3xl font-display font-bold text-foreground mb-2">
-              Welcome back, {profile?.display_name || 'Learner'}! 👋
+              Courses
             </h1>
             <p className="text-muted-foreground">
-              Continue your English learning journey. You're doing great!
+              Browse and enroll in courses to start your learning journey.
             </p>
           </motion.div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <StatsCard
-              title="Current Streak"
-              value={`${userStats?.streak || 0} days`}
-              icon={Flame}
-              variant="primary"
-            />
-            <StatsCard
-              title="Enrolled Courses"
-              value={enrolledCourseIds.length.toString()}
-              subtitle={`out of ${courses?.length || 0}`}
-              icon={BookOpen}
-              variant="default"
-            />
-            <StatsCard
-              title="Average Score"
-              value={userStats?.avgScore ? `${userStats.avgScore}%` : "--"}
-              subtitle={userStats?.totalPractice ? `${userStats.totalPractice} practices` : undefined}
-              icon={Target}
-              variant="success"
-            />
-            <StatsCard
-              title="Practice Time"
-              value={`${userStats?.practiceHours || 0}h`}
-              subtitle="this week"
-              icon={Clock}
-              variant="accent"
-            />
-          </div>
-
-          {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Courses & Lessons */}
             <div className="lg:col-span-2 space-y-6">
               {/* Available Courses */}
               <motion.section
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
               >
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-display font-semibold text-foreground">
@@ -189,7 +130,6 @@ const Index = () => {
                 <motion.section
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
                 >
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-display font-semibold text-foreground">
@@ -240,10 +180,8 @@ const Index = () => {
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
               className="space-y-6"
             >
-              {/* Quick Practice */}
               <div className="p-6 rounded-2xl bg-card border border-border/50">
                 <h3 className="font-display font-semibold text-lg mb-4">
                   {selectedLesson ? selectedLesson.lesson_name : 'Quick Practice'}
@@ -290,54 +228,11 @@ const Index = () => {
                   </div>
                 )}
               </div>
-
-              {/* Recent Activity */}
-              <div className="p-6 rounded-2xl bg-card border border-border/50">
-                <div className="flex items-center gap-2 mb-4">
-                  <History className="w-5 h-5 text-muted-foreground" />
-                  <h3 className="font-display font-semibold text-lg">
-                    Recent Activity
-                  </h3>
-                </div>
-                {userStats?.recentHistory && userStats.recentHistory.length > 0 ? (
-                  <div className="space-y-3">
-                    {userStats.recentHistory.slice(0, 5).map((history: any, i: number) => (
-                      <div 
-                        key={i} 
-                        className="flex items-center justify-between py-2 border-b border-border/30 last:border-0"
-                      >
-                        <div>
-                          <div className={`text-sm font-medium ${
-                            history.score >= 70 ? "text-success" : "text-muted-foreground"
-                          }`}>
-                            Score: {history.score}%
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {formatDistanceToNow(new Date(history.practiced_at), { addSuffix: true })}
-                          </div>
-                        </div>
-                        <div className={`text-sm font-medium ${
-                          history.coins_earned >= 0 ? "text-success" : "text-destructive"
-                        }`}>
-                          {history.coins_earned >= 0 ? "+" : ""}{history.coins_earned} C
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-4">
-                    <p className="text-sm text-muted-foreground">
-                      No activity yet. Start practicing to see your progress!
-                    </p>
-                  </div>
-                )}
-              </div>
             </motion.div>
           </div>
         </div>
       </main>
 
-      {/* Practice Modal */}
       {selectedLesson && (
         <PracticeModal
           isOpen={isPracticeOpen}
@@ -356,4 +251,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default Courses;

@@ -1,10 +1,8 @@
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
-import { ArrowLeft, Trophy, Medal, Award, Crown, Loader2 } from "lucide-react";
+import { Trophy, Medal, Award, Crown, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { CoinBadge } from "@/components/ui/CoinBadge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Sidebar } from "@/components/layout/Sidebar";
 import { useLeaderboard, useUserRank } from "@/hooks/useLeaderboard";
 import { useAuth } from "@/context/AuthContext";
 
@@ -49,15 +47,16 @@ const Leaderboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-3xl mx-auto p-6">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Link to="/">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
-          <div>
+      <Sidebar />
+      
+      <main className="ml-64 p-8">
+        <div className="max-w-3xl mx-auto">
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
             <h1 className="text-3xl font-display font-bold flex items-center gap-3">
               <Trophy className="w-8 h-8 text-primary" />
               Leaderboard
@@ -65,8 +64,7 @@ const Leaderboard = () => {
             <p className="text-muted-foreground">
               Top learners by total score
             </p>
-          </div>
-        </div>
+          </motion.div>
 
         {/* User's Rank */}
         {userRank && (
@@ -160,7 +158,8 @@ const Leaderboard = () => {
             ))
           )}
         </div>
-      </div>
+        </div>
+      </main>
     </div>
   );
 };
