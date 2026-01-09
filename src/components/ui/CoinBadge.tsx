@@ -35,7 +35,7 @@ export const CoinBadge = ({ amount, showChange, size = "md" }: CoinBadgeProps) =
         <Coins size={iconSizes[size]} />
       </motion.div>
       <span className="font-display font-semibold text-accent">
-        {amount.toLocaleString()}
+        {amount.toLocaleString()} C
       </span>
       {showChange !== undefined && showChange !== 0 && (
         <motion.span
