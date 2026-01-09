@@ -12,6 +12,7 @@ import Leaderboard from "./pages/Leaderboard";
 import Profile from "./pages/Profile";
 import Courses from "./pages/Courses";
 import Progress from "./pages/Progress";
+import Practice from "./pages/Practice";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Courses />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/practice" 
+              element={
+                <ProtectedRoute>
+                  <Practice />
                 </ProtectedRoute>
               } 
             />

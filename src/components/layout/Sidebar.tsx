@@ -9,7 +9,8 @@ import {
   ChevronRight,
   TrendingUp,
   Shield,
-  LogOut
+  LogOut,
+  Mic
 } from "lucide-react";
 import { CoinBadge } from "@/components/ui/CoinBadge";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,7 @@ import logo from "@/assets/logo.png";
 const menuItems = [
   { id: "dashboard", path: "/", label: "Dashboard", icon: Home },
   { id: "courses", path: "/courses", label: "Courses", icon: BookOpen },
+  { id: "practice", path: "/practice", label: "Practice", icon: Mic },
   { id: "progress", path: "/progress", label: "Progress", icon: TrendingUp },
   { id: "leaderboard", path: "/leaderboard", label: "Leaderboard", icon: Trophy },
 ];
