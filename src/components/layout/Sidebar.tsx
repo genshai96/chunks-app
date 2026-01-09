@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   Home, 
   BookOpen, 
@@ -7,7 +7,6 @@ import {
   Settings, 
   User, 
   ChevronRight,
-  Mic,
   TrendingUp,
   Shield,
   LogOut
@@ -19,32 +18,31 @@ import { useWallet } from "@/hooks/useUserData";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.png";
 
-interface SidebarProps {
-  currentPage: string;
-  onNavigate: (page: string) => void;
-}
-
 const menuItems = [
-  { id: "dashboard", label: "Dashboard", icon: Home },
-  { id: "courses", label: "Courses", icon: BookOpen },
-  { id: "practice", label: "Practice", icon: Mic },
-  { id: "progress", label: "Progress", icon: TrendingUp },
-  { id: "leaderboard", label: "Leaderboard", icon: Trophy },
+  { id: "dashboard", path: "/", label: "Dashboard", icon: Home },
+  { id: "courses", path: "/courses", label: "Courses", icon: BookOpen },
+  { id: "progress", path: "/progress", label: "Progress", icon: TrendingUp },
+  { id: "leaderboard", path: "/leaderboard", label: "Leaderboard", icon: Trophy },
 ];
 
 const bottomItems = [
-  { id: "profile", label: "Profile", icon: User },
-  { id: "settings", label: "Settings", icon: Settings },
+  { id: "profile", path: "/profile", label: "Profile", icon: User },
 ];
 
-export const Sidebar = ({ currentPage, onNavigate }: SidebarProps) => {
+export const Sidebar = () => {
   const { isAdmin, isTeacher, signOut } = useAuth();
   const { data: wallet } = useWallet();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/auth');
+  };
+
+  const isActive = (path: string) => {
+    if (path === "/") return location.pathname === "/";
+    return location.pathname.startsWith(path);
   };
 
   return (
@@ -55,12 +53,14 @@ export const Sidebar = ({ currentPage, onNavigate }: SidebarProps) => {
     >
       {/* Logo */}
       <div className="p-6 border-b border-sidebar-border">
-        <motion.div 
-          className="flex items-center gap-3"
-          whileHover={{ scale: 1.02 }}
-        >
-          <img src={logo} alt="CHUNKS" className="h-10 w-auto" />
-        </motion.div>
+        <Link to="/">
+          <motion.div 
+            className="flex items-center gap-3"
+            whileHover={{ scale: 1.02 }}
+          >
+            <img src={logo} alt="CHUNKS" className="h-10 w-auto" />
+          </motion.div>
+        </Link>
       </div>
 
       {/* Coin Balance */}
@@ -72,24 +72,24 @@ export const Sidebar = ({ currentPage, onNavigate }: SidebarProps) => {
       {/* Main Navigation */}
       <nav className="flex-1 p-4 space-y-1">
         {menuItems.map((item) => (
-          <motion.button
-            key={item.id}
-            onClick={() => onNavigate(item.id)}
-            whileHover={{ x: 4 }}
-            whileTap={{ scale: 0.98 }}
-            className={cn(
-              "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group",
-              currentPage === item.id
-                ? "bg-primary/10 text-primary border border-primary/20"
-                : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-            )}
-          >
-            <item.icon size={20} />
-            <span className="font-medium">{item.label}</span>
-            {currentPage === item.id && (
-              <ChevronRight size={16} className="ml-auto" />
-            )}
-          </motion.button>
+          <Link key={item.id} to={item.path}>
+            <motion.div
+              whileHover={{ x: 4 }}
+              whileTap={{ scale: 0.98 }}
+              className={cn(
+                "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group",
+                isActive(item.path)
+                  ? "bg-primary/10 text-primary border border-primary/20"
+                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+              )}
+            >
+              <item.icon size={20} />
+              <span className="font-medium">{item.label}</span>
+              {isActive(item.path) && (
+                <ChevronRight size={16} className="ml-auto" />
+              )}
+            </motion.div>
+          </Link>
         ))}
         
         {/* Admin Link */}
@@ -98,10 +98,18 @@ export const Sidebar = ({ currentPage, onNavigate }: SidebarProps) => {
             <motion.div
               whileHover={{ x: 4 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+              className={cn(
+                "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200",
+                isActive("/admin")
+                  ? "bg-primary/10 text-primary border border-primary/20"
+                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+              )}
             >
               <Shield size={20} />
               <span className="font-medium">Admin Panel</span>
+              {isActive("/admin") && (
+                <ChevronRight size={16} className="ml-auto" />
+              )}
             </motion.div>
           </Link>
         )}
@@ -110,21 +118,21 @@ export const Sidebar = ({ currentPage, onNavigate }: SidebarProps) => {
       {/* Bottom Navigation */}
       <div className="p-4 border-t border-sidebar-border space-y-1">
         {bottomItems.map((item) => (
-          <motion.button
-            key={item.id}
-            onClick={() => onNavigate(item.id)}
-            whileHover={{ x: 4 }}
-            whileTap={{ scale: 0.98 }}
-            className={cn(
-              "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200",
-              currentPage === item.id
-                ? "bg-primary/10 text-primary"
-                : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-            )}
-          >
-            <item.icon size={20} />
-            <span className="font-medium">{item.label}</span>
-          </motion.button>
+          <Link key={item.id} to={item.path}>
+            <motion.div
+              whileHover={{ x: 4 }}
+              whileTap={{ scale: 0.98 }}
+              className={cn(
+                "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200",
+                isActive(item.path)
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+              )}
+            >
+              <item.icon size={20} />
+              <span className="font-medium">{item.label}</span>
+            </motion.div>
+          </Link>
         ))}
         
         <Button

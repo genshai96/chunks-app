@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
 import { 
-  ArrowLeft, 
   User, 
   Mail, 
   Calendar, 
@@ -23,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CoinBadge } from "@/components/ui/CoinBadge";
+import { Sidebar } from "@/components/layout/Sidebar";
 import { useProfile, useWallet } from "@/hooks/useUserData";
 import { useUserStats, usePracticeHistory } from "@/hooks/usePractice";
 import { useCoinTransactions } from "@/hooks/useCoinWallet";
@@ -77,19 +76,19 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto p-6">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Link to="/">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
-          <div>
+      <Sidebar />
+      
+      <main className="ml-64 p-8">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
             <h1 className="text-3xl font-display font-bold">Profile</h1>
             <p className="text-muted-foreground">Manage your account and view your progress</p>
-          </div>
-        </div>
+          </motion.div>
 
         {/* Profile Card */}
         <motion.div
@@ -309,7 +308,8 @@ const Profile = () => {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
+        </div>
+      </main>
     </div>
   );
 };
