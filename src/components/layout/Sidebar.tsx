@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useWallet } from "@/hooks/useUserData";
 import { Button } from "@/components/ui/button";
+import logo from "@/assets/logo.png";
 
 interface SidebarProps {
   currentPage: string;
@@ -58,10 +59,7 @@ export const Sidebar = ({ currentPage, onNavigate }: SidebarProps) => {
           className="flex items-center gap-3"
           whileHover={{ scale: 1.02 }}
         >
-          <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center glow-primary">
-            <span className="text-xl font-bold text-primary-foreground">C</span>
-          </div>
-          <span className="text-xl font-display font-bold text-foreground">CHUNKS</span>
+          <img src={logo} alt="CHUNKS" className="h-10 w-auto" />
         </motion.div>
       </div>
 
